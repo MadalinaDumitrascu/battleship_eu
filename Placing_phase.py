@@ -1,29 +1,44 @@
-def count_ship_on_board(player1, board1, board2):
-    number_of_x_in_board1 = 0
-    number_of_x_in_board2 = 0
-    for i in board1:
-        for j in i:
-            if j == "X ":
-                number_of_x_in_board1 += 1
-    for i in board2:
-        for j in i:
-            if i == "X ":
-                number_of_x_in_board2 += 1
+import random
 
-    return number_of_x_in_board1, number_of_x_in_board2
 
-def get_size_of_ship():
-    print("You have 2 types of ships: 1 boat of 3 spaces(BIG), 1 boat of 2 space(TINY)")
-    valid_size = ["1", "2"]
-    size = input("choose 1 for Big, and 2 for Tiny")
-    while not size in valid_size:
-        size = input("try again: 1 or 2: ")
-    if size == "1":
-        return 5
-    if size == "2":
-        return 1   
+def get_board_size():
+    admitted_size = ["5", "6", "7", "8", "9", "10"]
+    print("Let's choose the board now!!")
+    row = input("Give us the width of the board(between 5-10): ")
+    while not row.isnumeric() or not row in admitted_size:
+        row = input("Try again. It must be a number from 5 to 10: ")
+    col = input("Type also the height of the board: ")
+    while not col.isnumeric() or not col in admitted_size:
+        col = input("Try again. It must be a number from 5 to 10: ")
+    return int(row), int(col)
 
-def validate_coordinates(board, coordinate):    
+def start_menu():
+    valid_mode = ["1", "2"]
+    game_mode = input("choose game mode: 1 - PvP; 2 - PvAi: ")
+    while not game_mode in valid_mode:
+        game_mode = input("try again. 1 or 2: ")    
+    rows, cols = get_board_size()
+
+    return game_mode, rows, cols   
+
+def create_board(rows, cols):
+    board = []
+    for i in range(rows):
+        board.append(["0"] * cols)
+    return board
+
+def print_board(board):
+    alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    rows = len(board)
+    cols = len(board[0])
+    print(f"  {[i+1 for i in range(cols)]}")
+    for i in range(rows):
+        print(f"{alphabet[i]}", end=" ")
+        for j in range(cols):
+            print(f" {board[i][j]} ", end="")
+        print(" ")
+
+def validate_coordinates(current_board, coordinate):    
     row, col = coordinate[0], coordinate[1]
     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
     while True:
@@ -31,147 +46,173 @@ def validate_coordinates(board, coordinate):
         for letter in alphabet:
             if row == letter:
                 row = alphabet.find(letter)
-        if row >= len(board) or col >= len(board[0]):
-            return get_coordinates_for_boats(board)
-        return row, col
-
-def is_ship_near(board, row, col, ship_size, direction):
-    # for i in range(1, ship_size+1):
-    # # row, col = len(board), len(board[0])
-    #     if direction == "left:":
-    #         if board[row][col-1] != "#": #and board[row-1][col] != board[0][col]: #pt left
-    #             return True
-    #     elif direction == "right":
-    #         if board[row][col+1] != "#":#pt right
-    #             return True
-    #     elif direction == "up":
-    #         if board[row-1][col] != "#": #pt up
-    #             return True
-    #     elif direction == "down":
-    #         if board[row+1][col] != "#": #pt down
-    #             return True
-    #     else:
-    #         return False
-    for row_check in range(max([row - 1, 0]), min([row + 2, len(board[0])])):
-        for col_check in range(max([col - 1, 0]), min(col + 2, len(board))):
-                if not str(board[row_check][col_check]).isnumeric() and not (row_check == row and col_check == col):
-                    return True
-    return False
-# for row_check in range(max([row - 1, 0]), min(row + 2, len(board))):
-#             for col_check in range(max([col - 1, 0]), min([col + 2, len(board[0])])):
-#                 if not str(board[row_check][col_check]).isnumeric() and not (row_check == row and col_check == col):
-#                     return True
-#     return False
-
-def have_space(board, row, col, direction, ship_size):
-        if direction == "left":
-            return col - ship_size >= 0
-        if direction == "right":
-            return col + ship_size < len(board[0])
-        if direction == "up":
-            return row - ship_size >= 0
-        if direction == "down":
-            return row + ship_size < len(board)
-
-def is_available(board, row, col, ship_size):
-    for i in range(1, ship_size + 1):
-        if board[row][col] != "X":
-            return True
+        if row < 0 or col < 0 or row > len(current_board[0]) or col > len(current_board):
+            get_coordinates(current_board)
         else:
-            return False
+            if current_board[row][col] != '0':
+                get_coordinates(current_board)  
+        return row, col  
 
-    # def verify_right_left(board, start, stop):
-    #     for i in range(start, stop):
-    #         if not str(board[row][i]).isnumeric() or is_ship_near(board, row, i):
-    #             return False
-    #     return True
-    
-    # def verify_up_down(board, start, stop):
-    #     for i in range(start, stop):
-    #         if not str(board[i][col]).isnumeric() or is_ship_near(board, i, col):
-    #             return False
-    #     return True
-
-    
-
-    # available_options = []
-    # if have_space("left"):
-    #     if verify_right_left(board, col - ship_size, col + 1):
-    #         if "left" not in available_options:
-    #             available_options.append("left")
-    # if have_space("right"):
-    #     if verify_right_left(board, col, col + ship_size + 1):
-    #         if "right" not in available_options:
-    #             available_options.append("right")
-    # if have_space("up"):
-    #     if verify_up_down(board, row - ship_size, row + 1):
-    #         if "up" not in available_options:
-    #             available_options.append("up")
-    # if have_space("down"):
-    #     if verify_up_down(board, row, row + ship_size + 1):
-    #         if "down" not in available_options:
-    #             available_options.append("down")
-    # return available_options
-
-
-def get_coordinates_for_boats(board, ship_size):
-    coordinate = input("Please place your ship:(ex:A2): ").upper()
+def get_coordinates(board):
+    coordinate = input("Please enter your coordinate:(ex:A2): ").upper()
     if len(coordinate) != 2:
-        coordinate = input("Try again. Place your ship:(ex:A2): ").upper() 
+        coordinate = input("Try again. Place your coordinate:(ex:A2): ").upper() 
     while not coordinate[0].isalpha() or not coordinate[1].isnumeric():
-        coordinate = input("Try again. Place your ship:(ex:A2): ").upper()
-    row, col = validate_coordinates(board, coordinate)
-    direction = get_direction(board, row, col, ship_size)
-    while not is_available(board, row, col, ship_size):
-        coordinate = input("place taken. try again!!: ")
-    while not is_ship_near(board, row, col, ship_size, direction):
-        coordinate = input("too close. Try again: ")   
-    return row, col, direction  
+        coordinate = input("Try again. Place your coordinate:(ex:A2): ").upper()
+    (row, col) = validate_coordinates(board, coordinate)
+    if validate_coordinates(board, coordinate) == False:
+        get_coordinates(board) 
+       
+    return (row, col) 
 
-
-
-def get_direction(board, row, col, ship_size):
+def get_direction():
     valid_direction = ["left", "right", "up", "down"]
     direction = print("Now we choose the direction.")
-    direction = input("Try again: left, right, up or down")
     if direction == "left" or direction == "right" or direction == "up" or direction == "down":
         return direction
     while not direction in valid_direction:
         direction = input("Try again: left, right, up or down")
+    return direction
 
-    # if col == 0:
-    #     direction = input("choose direction: possible only: up, down, right: ")
-    #     return direction
-    # elif col == board[row-1]:
-    #     direction = input("choose direction: possible only: up, down, left: ")
-    #     return direction
-    # elif row == 0:
-    #     direction = input("choose direction: possible only: down, left, right: ") 
-    #     return direction
-    # elif row == len(board[-1]):
-    #     direction = input("choose direction: possible only: up, left, right: ")
-    #     return direction          
+def valid_coordinate_placing_boat(coordonate, direction, boat_length, current_board):
+    (row, col) = coordonate
+    ship_coordonates = [(row, col)]
+    for ship_part in range(1, boat_length):
+        if direction == 'right':
+            ship_coordonates.append((row, col+1*ship_part))
+        if direction == 'left':
+            ship_coordonates.append((row, col-1*ship_part))    
+        if direction == 'up':
+            ship_coordonates.append(((row-1)*ship_part, col))
+        if direction == 'down':
+            ship_coordonates.append(((row+1)*ship_part, col))
+        # else:
+        #     ship_coordonates.append(((row+1)*ship_part, col))
+    for ship_coordonate in ship_coordonates:
+        (current_row, current_col) = ship_coordonate
+        
+    return ship_coordonates
+
+def place_ships(current_board, ship_coordonates):
+    row = len(current_board[0])
+    col = len(current_board)
+    for i in range(row):
+        for j in range(col):
+            pos = (i, j)
+            for cord in ship_coordonates:
+                if pos == cord and current_board[i][j] == "0":
+                    current_board[i][j] = "X"
+    return current_board             
+
+def count_ship_on_board(current_player, current_board):
+    number_of_x_in_board1 = 0
+    for i in current_board:
+        for j in i:
+            if j == "X":# spatiu sters
+                number_of_x_in_board1 += 1
+
+
+
+
+
+
+
+
+
+# def count_ship_on_board(player1, board1, board2):
+#     number_of_x_in_board1 = 0
+#     number_of_x_in_board2 = 0
+#     for i in board1:
+#         for j in i:
+#             if j == "X ":
+#                 number_of_x_in_board1 += 1
+#     for i in board2:
+#         for j in i:
+#             if i == "X ":
+#                 number_of_x_in_board2 += 1
+
+#     return number_of_x_in_board1, number_of_x_in_board2
+
+# def get_size_of_ship():
+#     print("You have 2 types of ships: 1 boat of 3 spaces(BIG), 1 boat of 2 space(TINY)")
+#     valid_size = ["1", "2"]
+#     size = input("choose 1 for Big, and 2 for Tiny")
+#     while not size in valid_size:
+#         size = input("try again: 1 or 2: ")
+#     if size == "1":
+#         return 3
+#     if size == "2":
+#         return 2   
+
+# def validate_coordinates(board, coordinate):    
+#     row, col = coordinate[0], coordinate[1]
+#     alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+#     while True:
+#         col = int(coordinate[1]) - 1  
+#         for letter in alphabet:
+#             if row == letter:
+#                 row = alphabet.find(letter)
+#         if row >= len(board) or col >= len(board[0]):
+#             return get_coordinates_for_boats(board)
+#         return row, col
+
+
+# def have_space(board, row, col, direction, ship_size):
+#         if direction == "left":
+#             return col - ship_size >= 0
+#         if direction == "right":
+#             return col + ship_size < len(board[0])
+#         if direction == "up":
+#             return row - ship_size >= 0
+#         if direction == "down":
+#             return row + ship_size < len(board)
+
+# def is_available(board, row, col, ship_size):
+#     for i in range(1, ship_size + 1):
+#         if board[row][col] != "X":
+#             return True
+#         else:
+#             return False
+
+
+# def get_coordinates_for_boats():
+#     coordinate = input("Please place your ship:(ex:A2): ").upper()
+#     if len(coordinate) != 2:
+#         coordinate = input("Try again. Place your ship:(ex:A2): ").upper() 
+#     while not coordinate[0].isalpha() or not coordinate[1].isnumeric():
+#         coordinate = input("Try again. Place your ship:(ex:A2): ").upper()
+#     row, col = validate_coordinates(coordinate)  
+#     return row, col 
+
+
+
+# def get_direction(board, row, col, ship_size):
+#     valid_direction = ["left", "right", "up", "down"]
+#     direction = print("Now we choose the direction.")
+#     direction = input("Try again: left, right, up or down")
+#     if direction == "left" or direction == "right" or direction == "up" or direction == "down":
+#         return direction
+#     while not direction in valid_direction:
+#         direction = input("Try again: left, right, up or down")
     
- 
-    
 
-def place_ships(board, ship_size, row, col, direction, max_ship1, max_ship2):
-    for i in range(ship_size):
-        if direction == "left":
-            board[row][col-i] = "X "
-        elif direction == "right":
-            board[row][col+i] = "X "
-        elif direction == "up":
-            board[row-i][col] = "X "
-        elif direction == "down":
-            board[row+i][col] = "X "
+# def place_ships(board, ship_size, row, col, direction, max_ship1, max_ship2):
+#     for i in range(ship_size):
+#         if direction == "left":
+#             board[row][col-i] = "X "
+#         elif direction == "right":
+#             board[row][col+i] = "X "
+#         elif direction == "up":
+#             board[row-i][col] = "X "
+#         elif direction == "down":
+#             board[row+i][col] = "X "
 
-def put_max_number_of_ships(player1, board1, board2, max_ship1, max_ship2):   
-    number_of_x_in_board1, number_of_x_in_board2 = count_ship_on_board(player1, board1, board2) 
-    if number_of_x_in_board1 == max_ship1 and number_of_x_in_board2 == max_ship2:
-        return True
-    else:
-        return False            
+# def put_max_number_of_ships(player1, board1, board2, max_ship1, max_ship2):   
+#     number_of_x_in_board1, number_of_x_in_board2 = count_ship_on_board(player1, board1, board2) 
+#     if number_of_x_in_board1 == max_ship1 and number_of_x_in_board2 == max_ship2:
+#         return True
+#     else:
+#         return False            
     
 
 

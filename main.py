@@ -69,7 +69,8 @@ def place_ships_part(player1, board1, board2, max_ship1, max_ship2):
             print_board(board1 if player1 else board2)
             input(f"Press enter to continue to player {2 if player1 else 1}")
             # place_ships_part(board1, board2, max_ship1, max_ship2, not player1)
-        return board1, board2 
+        else:
+            return board1, board2 
 
 
 def shoot_ships_part():
